@@ -1,0 +1,25 @@
+{%  extends 'exercisegamification/base.html' %}
+{% block content %}
+    <div class = "container">
+    <body>
+    <h1>Find Friends</h1>
+    <table class="table table-sm table-bordered table-striped">
+        <thead>
+        <tr>
+            <th scope="col">Potential Friends</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for profile in users %}
+            {% if user != profile.user %}
+        <tr>
+            <td><a href="{% url 'other profile' pk=profile.pk%}">{{ profile }} </a></td>
+        </tr>
+            {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+    </body>
+    </div>
+
+{% endblock%}

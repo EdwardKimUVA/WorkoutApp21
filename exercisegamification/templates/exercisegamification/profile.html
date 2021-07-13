@@ -1,0 +1,200 @@
+{% extends "exercisegamification/base.html" %}
+{% block content %}
+<!--- /***
+# *  REFERENCES
+# *  Title: profile HTML
+# *  Author: Bootdey
+# *  Date: 04/12/2021
+# *
+# *  URL: https://www.bootdey.com/snippets/view/profile-with-data-and-skills
+# *
+# ***/-->
+<!--- /***
+# *  REFERENCES
+# *  Title: Bootstrap templates
+# *  Author: Thomas Park
+# *  Date: 04/12/2021
+# *  License: MIT License
+# *  URL: https://bootswatch.com/lux/
+# *
+# ***/-->
+{% load static %}
+<div class="container">
+    <div class="main-body">
+        <div class="row gutters-sm">
+            <div class="col-md-4 mb-3">
+              <div class="card">
+                <div class="card-body">
+                  <div class="d-flex flex-column align-items-center text-center">
+                    {% if profile.profile_pic %}
+                    <img src="{{profile.profile_pic.url}}" class="rounded-circle" width="150">
+                    {% else %}
+                    <img src="{% static 'defaultpfp.png' %}" class="rounded-circle" width="150">
+                    {% endif %}
+                    <div class="mt-3">
+                      <h4>{{profile.first_name}} {{profile.last_name}}</h4>
+                      <p class="text-muted font-size-sm">Username: {{profile.user}}</p>
+                      <p class="text-muted font-size-sm">Friends: {{profile.friends.all.count}}</p>
+                      <p class="text-muted font-size-sm">Age: {{profile.age}}</p>
+                      {% if user == profile.user %}
+                      <a href = "{% url 'edit_profile' %}" class = "btn btn-outline-info"> Edit Profile </a>
+                      {% endif %}
+                      {% if user != profile.user and profile.user not in rel_receiver and profile.user not in rel_sender %}
+                      <form action="{% url 'send friend request' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="profile_pk" value={{profile.pk}}>
+                        <button type="submit" class="btn btn-outline-info">Add Friend</button>
+                      </form>
+                      {% endif %}
+                      {% if user != profile.user and profile.user in rel_receiver and user not in profile.friends.all %}
+                        <a class="btn btn-outline-info">Request Pending</a>
+                      {% endif %}
+                      {% if user != profile.user and profile.user in user.profile.friends.all %}
+                      <form action="{% url 'remove friend' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="profile_pk" value={{profile.pk}}>
+                        <button type="submit" class="btn btn-outline-info">Remove Friend</button>
+                      </form>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% if profile.bmi or profile.weight %}
+              <div class="card mt-3">
+                <ul class="list-group list-group-flush">
+                  {% if profile.weight %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                    <h6 class="mb-0">Weight (lbs)</h6>
+                    {{profile.weight}}
+                  </li>
+                  {% endif %}
+                  {% if profile.bmi %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                    <h6 class="mb-0">BMI</h6>
+                    {{profile.bmi}}
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+              {% endif %}
+            </div>
+            <div class="col-md-8">
+              <div class="card mb-3">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-sm-3">
+                      <h6 class="mb-0">Full Name</h6>
+                    </div>
+                    <div class="col-sm-9 text-secondary">
+                      {{profile.first_name}} {{profile.last_name}}
+                    </div>
+                  </div>
+                  <hr>
+                  <div class="row">
+                    <div class="col-sm-3">
+                      <h6 class="mb-0">Age</h6>
+                    </div>
+                    <div class="col-sm-9 text-secondary">
+                      {{profile.age}}
+                    </div>
+                  </div>
+                  <hr>
+                  <div class="row">
+                    <div class="col-sm-3">
+                      <h6 class="mb-0">Favorite Ways to Exercise</h6>
+                    </div>
+                    <div class="col-sm-9 text-secondary">
+                      {{profile.fav_exercise}}
+                    </div>
+                  </div>
+                  <hr>
+                  <div class="row">
+                      <div class="col-sm-3">
+                          <h6 class="mb-0">Points</h6>
+                      </div>
+                      <div class="col-sm-9 text-secondary">
+                          {{profile.points_total}}
+                      </div>
+                  </div>
+                  <hr>
+                  <div class="row">
+                    <div class="col-sm-3">
+                      <h6 class="mb-0">My Goals</h6>
+                    </div>
+                    <div class="col-sm-9 text-secondary">
+                      <ul>
+                        {% for goal in goals_list %}
+                          {% if user != profile.user %}
+                          <li><a href="{% url 'others goal detail' pk=goal.pk pi=profile.pk %}">{{ goal.title }}</a> - {{ goal.goal_text }}<br/>
+                          </li>
+                          {% else %}
+                          <li><a href="{% url 'goal detail' goal.pk %}">{{ goal.title }}</a> - {{ goal.goal_text }}<br/>
+                          </li>
+                          {% endif %}
+                        {% endfor %}
+                      </ul>
+                      {% if user == profile.user %}
+                      <a href = "{% url 'add goal' %}" class = "btn btn-outline-info"> Add Goal </a>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <hr>
+                  <div class="row">
+                    <table class="table table-sm table-bordered table-striped">
+                      <thead>
+                      <tr>
+                          <th scope="col">Workout Done</th>
+                          <th scope="col">Points awarded</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                        {% for workout in workouts_list %}
+                        <tr>
+                        {% if user != profile.user %}
+                        <th>{{ workout.workout_title }}</th>
+                        <td>{{ workout.points }}</td>
+                        {% else %}
+                        <th><a href="{% url 'add workout' workout.pk %}">{{ workout.workout_title }}</a></th>
+                        <td>{{ workout.points }}</td>
+                        {% endif %}
+                        </tr>
+                      {% endfor %}
+                      </tbody>
+                  </table>
+                  </div>
+                </div>
+              </div>
+              {% if user == profile.user %}
+              {% if friend_requests.count != 0%}
+              <div class="row gutters-sm">
+                <div class="col-sm-12 mb-3">
+                  <div class="card h-100">
+                    <ul class="list-group list-group-flush">
+                      {% for request in friend_requests %}
+                       <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                        <a href="{% url 'other profile' request.sender.pk%}">{{ request.sender }}</a>
+                         <form action="{% url 'accept request' %}" method="POST">
+                           {% csrf_token %}
+                           <input type="hidden" name="profile_pk" value="{{request.sender.pk}}">
+                           <button type="submit" class="btn btn-outline-info">Accept Request</button>
+                         </form>
+                         <form action="{% url 'decline request' %}" method="POST">
+                           {% csrf_token %}
+                           <input type="hidden" name="profile_pk" value="{{request.sender.pk}}">
+                           <button type="submit" class="btn btn-outline-info">Decline Request</button>
+                         </form>
+                       </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+              {% endif %}
+              </div>
+          </div>
+            </div>
+        </div>
+
+{% endblock %}
